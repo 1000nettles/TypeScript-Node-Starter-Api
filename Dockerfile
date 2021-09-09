@@ -5,9 +5,10 @@
 # - https://nodejs.org/fr/docs/guides/nodejs-docker-webapp/
 # - https://snyk.io/blog/10-best-practices-to-containerize-nodejs-web-applications-with-docker/
 
+# Lock to specific version of Node LTS Alpine
 ARG BASE_IMAGE=node:lts-alpine@sha256:8c94a0291133e16b92be5c667e0bc35930940dfa7be544fb142e25f8e4510a45
 
-# Lock to specific version of Node LTS Alpine
+# First stage: compile things.
 FROM ${BASE_IMAGE} AS build
 
 WORKDIR /usr/src/app
@@ -15,8 +16,9 @@ WORKDIR /usr/src/app
 # (Install OS dependencies; include -dev packages if needed.)
 
 # Install the Javascript dependencies, including all devDependencies.
-COPY ["package.json", "package-lock.json", "./"]
-RUN npm install
+
+COPY --chown=node:node ["package.json", "package-lock.json", "./"]
+RUN npm ci
 
 # Copy the rest of the application in and build it.
 COPY . .
@@ -30,6 +32,7 @@ RUN npx tsc -p ./tsconfig.json
 
 # Lock to specific version of Node LTS Alpine
 FROM ${BASE_IMAGE}
+RUN apk add dumb-init
 
 ENV NODE_ENV=production
 
@@ -37,8 +40,8 @@ ENV NODE_ENV=production
 WORKDIR /usr/src/app
 
 # Install the Javascript dependencies, only runtime libraries.
-COPY ["package.json", "package-lock.json*", "tsconfig.json", "./"]
-RUN npm install --production
+COPY --chown=node:node ["package.json", "package-lock.json", "tsconfig.json", "./"]
+RUN npm ci --only=production
 
 # Copy the dist tree from the first stage.
 COPY --from=build /usr/src/app/dist dist
@@ -46,4 +49,4 @@ COPY --from=build /usr/src/app/dist dist
 EXPOSE 8080
 
 USER node
-CMD [ "node", "./dist/server.js" ]
+CMD ["dumb-init", "node", "dist/server.js"]
