@@ -7,11 +7,17 @@ import * as apiController from './controllers/api';
 const app = express();
 
 // Express configuration
-app.set('port', process.env.PORT || 3000);
+app.set('port', process.env.PORT || 8080);
 app.use(express.json());
 app.use(express.urlencoded({
   extended: true
 }));
+
+app.get('/', function (req, res) {
+  res.send({
+    hello: 'world',
+  });
+});
 
 /**
  * API examples routes.

@@ -1,0 +1,13 @@
+steps:
+# Build the container image
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'gcr.io/level-chassis-323322/typescript-node-starter-api', '.']
+# Push the container image to Container Registry
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/level-chassis-323322/typescript-node-starter-api']
+# Deploy container image to Cloud Run
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: gcloud
+  args: ['run', 'deploy', 'typescript-node-starter-api', '--image', 'gcr.io/level-chassis-323322/typescript-node-starter-api', '--region', 'us-west1-a']
+images:
+- gcr.io/level-chassis-323322/typescript-node-starter-api
