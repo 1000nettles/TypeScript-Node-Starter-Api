@@ -1,9 +1,11 @@
-import request from "supertest";
-import app from "../src/app";
+import request from 'supertest';
+import app from '../src/app';
 
-describe("GET /api", () => {
-    it("should return 200 OK", () => {
-        return request(app).get("/api")
-            .expect(200);
+describe('GET /api/ping', () => {
+    it('should return a pong response', (done) => {
+        request(app).get('/api/ping')
+            .expect(200, {
+                ping: 'pong',
+            }, done);
     });
 });
