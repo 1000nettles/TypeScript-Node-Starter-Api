@@ -1,6 +1,7 @@
 'use strict';
 
 import { Response, Request } from 'express';
+import chalk from 'chalk';
 
 /**
  * List of API examples.

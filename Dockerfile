@@ -9,9 +9,9 @@
 ARG BASE_IMAGE=node:lts-alpine@sha256:8c94a0291133e16b92be5c667e0bc35930940dfa7be544fb142e25f8e4510a45
 
 # First stage: compile things.
-FROM ${BASE_IMAGE} AS build
+FROM node:14 AS build
 
-WORKDIR /usr/src/app
+WORKDIR /usr/src/build
 
 # (Install OS dependencies; include -dev packages if needed.)
 
@@ -21,7 +21,7 @@ COPY --chown=node:node ["package.json", "package-lock.json", "./"]
 RUN npm ci
 
 # Copy the rest of the application in and build it.
-COPY . .
+COPY --chown=node:node . .
 
 # RUN npm build
 RUN npx tsc -p ./tsconfig.json
@@ -31,7 +31,7 @@ RUN npx tsc -p ./tsconfig.json
 # Second stage: run things.
 
 # Lock to specific version of Node LTS Alpine
-FROM ${BASE_IMAGE}
+FROM node:lts-alpine@sha256:8c94a0291133e16b92be5c667e0bc35930940dfa7be544fb142e25f8e4510a45
 RUN apk add dumb-init
 
 ENV NODE_ENV=production
@@ -44,7 +44,7 @@ COPY --chown=node:node ["package.json", "package-lock.json", "tsconfig.json", ".
 RUN npm ci --only=production
 
 # Copy the dist tree from the first stage.
-COPY --from=build /usr/src/app/dist dist
+COPY --chown=node:node --from=build /usr/src/build/dist dist
 
 EXPOSE 8080
 
